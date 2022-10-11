@@ -1,175 +1,87 @@
-# my custom bash goodness
+set nomodeline " do. not. want.
+set nocompatible " old vi is old.
 
-# anything local?
-if [ -e $HOME/.bashrc ]; then
-	source $HOME/.bashrc
-fi
+set vb " shhhh
+set number
 
-# get our personal helpers
-export PATH=$PATH:$HOME/.bin
+:syntax on
 
-# get me some vim cmd line luvin
-set -o vi
+if has("gui_running")
+    set background=dark
+	" :color zenburn
+	:color solarized
+	" let g:zenburn_force_dark_Background=1
+    set guioptions=egmrt
+else
+	:color zellner
+endif
 
-# api keys, etc
-if [ -e ~/.secrets/secrets ]; then
-	source ~/.secrets/secrets
-fi
+set sw=4 sts=4 ts=4
+:au BufEnter *.py set tw=78 ts=4 sw=4 sta et sts=4 ai
+:au BufEnter *.js set sw=2 sts=2 ts=2 et
+:au BufEnter *.rb set sw=2 ts=2 et ai
+:au BufEnter *.yml set sw=2 ts=2 et ai
+:au BufEnter *.haml set sw=2 ts=2 et ai
+:au BufEnter *.html   set sw=2 sts=2 ts=2 et
 
-export PYTHONSTARTUP=$HOME/.pythonrc.py
+:au BufEnter *.java set sw=4 sts=4 et ai
+:au BufEnter *.js set sw=2 sts=2 et ai
 
-# git related shellery
-export GIT_PS1_SHOWDIRTYSTATE=1
-source ~/.scriptdir/git-completion.bash
+augroup mkd
+  autocmd BufRead *.mkd  set ai formatoptions=tcroqn2 comments=n:&gt;
+augroup END
 
-# this shows a colorized git repo dirty state
-export PS1='\[\033[01;32m\]\h\[\033[00m\]:\[\033[01;34m\]\W\[\033[01;31m\]$(__git_ps1 "(%s)")\[\033[00m\]\$ '
+filetype plugin on
 
-# Setup some colors to use later in interactive shell or scripts
-export COLOR_NONE='\e[0m' # No Color
-export COLOR_WHITE='\e[1;37m'
-export COLOR_BLACK='\e[0;30m'
-export COLOR_BLUE='\e[0;34m'
-export COLOR_LIGHT_BLUE='\e[1;34m'
-export COLOR_GREEN='\e[0;32m'
-export COLOR_LIGHT_GREEN='\e[1;32m'
-export COLOR_CYAN='\e[0;36m'
-export COLOR_LIGHT_CYAN='\e[1;36m'
-export COLOR_RED='\e[0;31m'
-export COLOR_LIGHT_RED='\e[1;31m'
-export COLOR_PURPLE='\e[0;35m'
-export COLOR_LIGHT_PURPLE='\e[1;35m'
-export COLOR_BROWN='\e[0;33m'
-export COLOR_YELLOW='\e[1;33m'
-export COLOR_GRAY='\e[1;30m'
-export COLOR_LIGHT_GRAY='\e[0;37m'
-export CLICOLOR=1
+let python_highlight_all = 1
 
-alias colorslist="set | egrep 'COLOR_\w*'" # Lists all colors
-alias l="ls -lrtF"
-alias ll="ls -lF"
+function! SuperCleverTab()
+  if pumvisible()
+    return "\<C-N>"
+  endif
+    if strpart(getline('.'), 0, col('.') - 1) =~ '^\s*$'
+        return "\<Tab>"
+    else
+        if &omnifunc != ''
+            return "\<C-X>\<C-O>"
+        elseif &dictionary != ''
+            return "\<C-K>"
+        else
+            return "\<C-N>"
+        endif
+    endif
+endfunction
+" inoremap <Tab> <C-R>=SuperCleverTab()<cr>
+nmap <Tab> <C-R>=SuperCleverTab()<cr>
 
-alias wgetff='wget --random-wait --wait 2 --mirror --no-parent -U "Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.8.1.6) Gecko/20070725 Firefox/2.0.0.6"'
-alias wgetie='wget --random-wait --wait 2 --mirror --no-parent -U "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.0; .NET CLR 1.1.4322; .NET CLR 2.0.50727)"'
-alias wgetmac='wget --random-wait --wait 2 --mirror --no-parent -U "Mozilla/5.0 (Macintosh; U; PPC Mac OS X 10_5_2; en-gb)"'
+" tab navigation like ffox
+nmap <S-tab> :tabprevious<cr>
+nmap <C-tab> :tabnext<cr>
+map <S-tab> :tabprevious<cr>
+map <C-tab> :tabnext<cr>
+imap <S-tab> <ESC>:tabprevious<cr>i
+imap <C-tab> <ESC>:tabnext<cr>i
+" nmap <C-t> :tabnew<cr>
+" imap <C-t> <ESC>:tabnew<cr>
 
-# pip command line completion is nice too
-which pip >/dev/null 2>&1 && eval "`pip completion --bash`"
+set tags+=./tags
 
-# A bash completion script for Fabric targets
-# Author: Michael Dippery <mdippery@gmail.com>
+" trailing whitespace kills puppies
+highlight ExtraWhitespace ctermbg=red guibg=red
+match ExtraWhitespace /\s\+$/
+autocmd BufWinEnter * match ExtraWhitespace /\s\+$/
+autocmd InsertEnter * match ExtraWhitespace /\s\+\%#\@<!$/
+autocmd InsertLeave * match ExtraWhitespace /\s\+$/
+autocmd BufWinLeave * call clearmatches()
 
-_complete_fabric() {
-  COMPREPLY=()
-  if [ -e ./fabfile.py ]; then
-    local targets=$(grep 'def [a-z].*' ./fabfile.py | sed -e 's/^def //g' -e 's/(.*)://g')
-    local cur="${COMP_WORDS[COMP_CWORD]}"
-    COMPREPLY=( $(compgen -W "${targets}" -- ${cur}) )
-  fi
-}
-complete -o bashdefault -o default -F _complete_fabric fab
+" cscope goodness
+set tags=~/.vim/tags/snoball.tags,~/.vim/tags/tornado.tags,~/.vim/tags/mogo.tags
+set nocscopeverbose
+cs add ~/.vim/tags/snoball.cscope
+cs add ~/.vim/tags/tornado.cscope
+cs add ~/.vim/tags/mogo.cscope
+cs add ~/.vim/tags/python.cscope
+set cscopeverbose
 
-
-
-# set my timezone to central
-export TZ=CST6CDT
-
-# #######################################
-# OSX related aliases
-# #######################################
-
-export APPLESCRIPT_DIR=$HOME/.applescripts
-
-alias mvim="open -a MacVim"
-
-alias gitx="open -a GitX"
-
-# itunes related aliases
-alias np="osascript ${APPLESCRIPT_DIR}/nowplaying.osa"
-alias npp="osascript ${APPLESCRIPT_DIR}/nowplaying.osa|pbcopy && pbpaste"
-
-# give me a "show info" from teh cmd line
-alias i="osascript ${APPLESCRIPT_DIR}/info.osa > /dev/null 2>&1"
-
-# mount disk image
-dmg_loc=/Volumes/iDisk/Documents/crypt.dmg
-alias crypt_on="hdid -readonly ${dmg_loc} && cd /Volumes/Crypt"
-alias crypt_edit="hdid -readwrite ${dmg_loc} && cd /Volumes/Crypt"
-alias crypt_off="cd && hdiutil detach /Volumes/Crypt"
-
-
-# pip bash completion start
-_pip_completion()
-{
-    COMPREPLY=( $( COMP_WORDS="${COMP_WORDS[*]}" \
-                   COMP_CWORD=$COMP_CWORD \
-                   PIP_AUTO_COMPLETE=1 $1 ) )
-}
-complete -o default -F _pip_completion pip
-# pip bash completion end
-
-
-# virtualenv
-
-vw=`which virtualenvwrapper.sh 2>/dev/null`
-if [[ -n "$vw" ]] ; then
-	export PIP_RESPECT_VIRTUALENV=true
-	export WORKON_HOME=$HOME/Work/virtualenv
-	source "$vw"
-	export PIP_VIRTUALENV_BASE=$WORKON_HOME
-fi
-
-alias mve="mkvirtualenv --no-site-packages"
-
-
-
-# helpers from troy on working with github pull reqs
-
-function delp {
-    # delete git pull request branch
-    br=$(git branch | awk '$1=="*" {print $2; exit}')
-    if ! echo "$br" | egrep -q '^pull-[0-9]+$'; then
-        echo "\"$br\" is not a pull request branch" >&2
-        return 1
-    fi
-    git checkout master
-    git branch -D "$br"
-}
-
-function gitdir_top {
-    w=$(git rev-parse --git-dir)
-    if [[ -n $w ]] ; then
-        echo "$w/.."
-    fi
-}
-
-function git_upstream {
-    # which remote name represents the current repo's upstream
-    # if there's one named "upstream" pick that one, otherwise, default
-    # to "origin".
-    git remote | fgrep upstream || echo origin
-}
-
-function pullr {
-    # pullr : run tests against a pull request
-    # given a pull request number, merge the pull request with master,
-    # and run testcases.  when finished, if all tests pass, optionally
-    # remove the pull request branch.
-    pullreq=${1?}
-    delpull=$2  # any value deletes pull request branch on passed tests
-    (cd $(gitdir_top) &&  # git pulls has to be done at the top
-        git co master &&  # make sure we're on master
-        git pull $(git_upstream) master && # make sure we're up-to-date
-        git pulls update &&
-        gh fetch-pull $pullreq merge &&
-        fab test)
-    rc=$?
-    if [[ $rc -eq 0 ]] && [[ -n "$delpull" ]] ; then
-        delp
-        rc=$?
-    fi
-    return $rc
-}
-
-
-
+set cc=81
+highlight ColorColumn guibg=#990000

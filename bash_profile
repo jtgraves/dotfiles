@@ -16,14 +16,16 @@ if [ -e ~/.secrets/secrets ]; then
 	source ~/.secrets/secrets
 fi
 
-export PYTHONSTARTUP=$HOME/.pythonrc.py
+#export PYTHONSTARTUP=$HOME/.pythonrc.py
 
 # git related shellery
-export GIT_PS1_SHOWDIRTYSTATE=1
-source ~/.scriptdir/git-completion.bash
+#export GIT_PS1_SHOWDIRTYSTATE=1
+#source ~/.scriptdir/git-completion.bash
 
 # this shows a colorized git repo dirty state
-export PS1='\[\033[01;32m\]\h\[\033[00m\]:\[\033[01;34m\]\W\[\033[01;31m\]$(__git_ps1 "(%s)")\[\033[00m\]\$ '
+#export PS1='\[\033[01;32m\]\h\[\033[00m\]:\[\033[01;34m\]\W\[\033[01;31m\]$(__git_ps1 "(%s)")\[\033[00m\]\$ '
+
+export PS1="\[\e[0;32m\]\u\[\e[m\]: \[\e[0;33m\]\w\[\e[m\] \[\e[0;32m\]]$\[\e[m\] "
 
 # Setup some colors to use later in interactive shell or scripts
 export COLOR_NONE='\e[0m' # No Color
@@ -49,27 +51,12 @@ alias colorslist="set | egrep 'COLOR_\w*'" # Lists all colors
 alias l="ls -lrtF"
 alias ll="ls -lF"
 
-alias wgetff='wget --random-wait --wait 2 --mirror --no-parent -U "Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.8.1.6) Gecko/20070725 Firefox/2.0.0.6"'
-alias wgetie='wget --random-wait --wait 2 --mirror --no-parent -U "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.0; .NET CLR 1.1.4322; .NET CLR 2.0.50727)"'
-alias wgetmac='wget --random-wait --wait 2 --mirror --no-parent -U "Mozilla/5.0 (Macintosh; U; PPC Mac OS X 10_5_2; en-gb)"'
+#alias wgetff='wget --random-wait --wait 2 --mirror --no-parent -U "Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.8.1.6) Gecko/20070725 Firefox/2.0.0.6"'
+#alias wgetie='wget --random-wait --wait 2 --mirror --no-parent -U "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.0; .NET CLR 1.1.4322; .NET CLR 2.0.50727)"'
+#alias wgetmac='wget --random-wait --wait 2 --mirror --no-parent -U "Mozilla/5.0 (Macintosh; U; PPC Mac OS X 10_5_2; en-gb)"'
 
 # pip command line completion is nice too
-which pip >/dev/null 2>&1 && eval "`pip completion --bash`"
-
-# A bash completion script for Fabric targets
-# Author: Michael Dippery <mdippery@gmail.com>
-
-_complete_fabric() {
-  COMPREPLY=()
-  if [ -e ./fabfile.py ]; then
-    local targets=$(grep 'def [a-z].*' ./fabfile.py | sed -e 's/^def //g' -e 's/(.*)://g')
-    local cur="${COMP_WORDS[COMP_CWORD]}"
-    COMPREPLY=( $(compgen -W "${targets}" -- ${cur}) )
-  fi
-}
-complete -o bashdefault -o default -F _complete_fabric fab
-
-
+#which pip >/dev/null 2>&1 && eval "`pip completion --bash`"
 
 # set my timezone to central
 export TZ=CST6CDT
@@ -78,25 +65,14 @@ export TZ=CST6CDT
 # OSX related aliases
 # #######################################
 
-export APPLESCRIPT_DIR=$HOME/.applescripts
+#export APPLESCRIPT_DIR=$HOME/.applescripts
 
 alias mvim="open -a MacVim"
 
 alias gitx="open -a GitX"
 
-# itunes related aliases
-alias np="osascript ${APPLESCRIPT_DIR}/nowplaying.osa"
-alias npp="osascript ${APPLESCRIPT_DIR}/nowplaying.osa|pbcopy && pbpaste"
-
 # give me a "show info" from teh cmd line
-alias i="osascript ${APPLESCRIPT_DIR}/info.osa > /dev/null 2>&1"
-
-# mount disk image
-dmg_loc=/Volumes/iDisk/Documents/crypt.dmg
-alias crypt_on="hdid -readonly ${dmg_loc} && cd /Volumes/Crypt"
-alias crypt_edit="hdid -readwrite ${dmg_loc} && cd /Volumes/Crypt"
-alias crypt_off="cd && hdiutil detach /Volumes/Crypt"
-
+#alias i="osascript ${APPLESCRIPT_DIR}/info.osa > /dev/null 2>&1"
 
 # pip bash completion start
 _pip_completion()
@@ -173,3 +149,58 @@ function pullr {
 
 
 
+
+##
+# Your previous /Users/Todd/.bash_profile file was backed up as /Users/Todd/.bash_profile.macports-saved_2016-10-06_at_23:57:07
+##
+
+# MacPorts Installer addition on 2016-10-06_at_23:57:07: adding an appropriate PATH variable for use with MacPorts.
+export PATH="/opt/local/bin:/opt/local/sbin:$PATH"
+# Finished adapting your PATH environment variable for use with MacPorts.
+
+
+# Setting PATH for Python 3.5
+# The original version is saved in .bash_profile.pysave
+PATH="/Library/Frameworks/Python.framework/Versions/3.5/bin:${PATH}"
+export PATH
+
+parse_git_branch() {
+     git branch 2> /dev/null | sed -e '/^[^*]/d' -e 's/* \(.*\)/ (\1)/'
+}
+export PS1="\u \[\033[32m\]\w\[\033[33m\]\$(parse_git_branch)\[\033[00m\] $ "
+#export PS1="\u \[\033[32m\]\w\[\033[00m\] $ "
+
+_complete_ssh_hosts ()
+{
+        COMPREPLY=()
+        cur="${COMP_WORDS[COMP_CWORD]}"
+        comp_ssh_hosts=`cat ~/.ssh/known_hosts | \
+                        cut -f 1 -d ' ' | \
+                        sed -e s/,.*//g | \
+                        grep -v ^# | \
+                        uniq | \
+                        grep -v "\[" ;
+                cat ~/.ssh/config | \
+                        grep "^Host " | \
+                        awk '{print $2}'
+                `
+        COMPREPLY=( $(compgen -W "${comp_ssh_hosts}" -- $cur))
+        return 0
+}
+complete -F _complete_ssh_hosts ssh
+
+# Setting PATH for Python 3.6
+# The original version is saved in .bash_profile.pysave
+PATH="/Library/Frameworks/Python.framework/Versions/3.6/bin:${PATH}"
+export PATH
+
+
+# Setting PATH for Python 3.6
+# The original version is saved in .bash_profile.pysave
+PATH="/Library/Frameworks/Python.framework/Versions/3.6/bin:${PATH}"
+export PATH
+
+# Setting PATH for Python 3.8
+# The original version is saved in .bash_profile.pysave
+PATH="/Library/Frameworks/Python.framework/Versions/3.8/bin:${PATH}"
+export PATH

@@ -2,6 +2,7 @@ set nomodeline " do. not. want.
 set nocompatible " old vi is old.
 
 set vb " shhhh
+set number
 
 :syntax on
 
@@ -82,4 +83,5 @@ cs add ~/.vim/tags/mogo.cscope
 cs add ~/.vim/tags/python.cscope
 set cscopeverbose
 
-
+set cc=81
+highlight ColorColumn guibg=#990000
